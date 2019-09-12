@@ -1,0 +1,35 @@
+
+#Count the number of upregulated and downregulated genes:
+wc -l ./*/analysis/upregulated_genes.txt > ./upregulated_counts.txt 
+wc -l ./*/analysis/downregulated_genes.txt > ./downregulated_counts.txt
+
+#Get the actual gene names for each folder of upregulated and downregulated genes. This will grab the first column (which contains gene names):
+awk '{print$1}' ./*/analysis/downregulated_genes.txt > ./downregulate_genes.txt
+awk '{print$1}' ./*/analysis/upregulated_genes.txt > ./upregulated_genes.txt
+
+#Identify which genes are duplicates. This code below will tell you how many times each is each gene being repeated across the list as a number! BUT it won't tell you where its being repeated! 
+sort ./downregulate_genes.txt | uniq -c > ./downregulate_genes_unique.txt
+
+#Grab only the first 31 rows (genes) from colunm 1 of the downregulated_genes.txt and find out which of them are duplicated. So basically, i find out the sample with the lowest number of genes and then extract that number of genes for all of the samples:
+head -n31 ./*/analysis/downregulated_genes.txt | cut -f1 > ./downregulated_genes_top25.txt #cut out first column only
+sort ./downregulated_genes_top25.txt | uniq -c > ./downregulate_genes_unique.txt
+
+#Count the number of patients or / columns in a text file:
+awk '{print NF}' ./upregulated_genes.txt | sort -nu | tail -n1
+
+#Transpose the text file and output as a different titled file:
+datamash transpose < ./upregulated_genes.txt > ./up_transposed.txt
+
+#Get the 30 most upregulated and downregulated genes
+head -n30 ./upregulated_genes.txt > ./up30.txt
+head -n30 ./downregulated_genes.txt > ./down30.txt
+awk '{print$1}' ./down30.txt > ./genes_grep.txt
+datamash transpose < ./down30.txt > ./tdown30.txt
+datamash transpose < ./up30.txt > ./tup30.txt
+rm ./down30.txt ./up30.txt
+
+
+#Combine the two gene lists and call this "genes_grep.txt"
+datamash transpose < ./finaloverlap.txt > ./finaloverlap_transposed.txt
+while read line; do grep -i -w -m1 "$line" ./finaloverlap_transposed.txt; done < ./analysis/genes_grep.txt > ./tumortraining.txt
+datamash transpose < ./tumortraining.txt > ./tumortraining_transposed.txt
