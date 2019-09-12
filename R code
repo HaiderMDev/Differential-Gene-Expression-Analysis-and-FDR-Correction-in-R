@@ -1,7 +1,23 @@
 
-setwd("/home/haider/Desktop/TCGA/Working set/cancers/thca 15/analysis/")
+setwd("/home/./././")
 
-#Read the file, compute fold-changes and the emoving of infinites as a result of fold-change calculation 
+#Using COADREAD cancer as an example:
+coadread=read.table("coadread.txt",header=T,sep="\t",row.names=1)
+
+#Select controls using "grep" command in R.
+controls=coadread[,grep("11A",colnames(coadread))]
+ncol(controls)
+
+#Selecting the same number of tumor samples as controls
+tumors=coadread[,150:201]
+colnames(tumors)
+
+#Merging tables and saving the file:
+total = cbind(controls,tumors[,1:51]) #they keep all the colnames
+ncol(total)
+write.table(total,"total.txt",sep="\t")
+
+#Read the file, differential gene expression analysis and the removing of infinites as a result of fold-change calculation 
 t2= read.table("total.txt",header=T,sep="\t",row.names=1)
 t2$control.mean=rowMeans(t2[,1:57],na.rm=T)
 t2$tumor.mean=rowMeans(t2[,58:114],na.rm=T)
