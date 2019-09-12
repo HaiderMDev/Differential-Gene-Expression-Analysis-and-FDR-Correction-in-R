@@ -41,7 +41,7 @@ plot(log10(t2$p.value),t2$FC.tumor.over.control.log10,xlab="Log10 Fold Change (T
 dev.off()
 
 #Saving the upregulated genes as a separate file:
-up2 = t2[which(t2$FC.tumor.over.control>10 & t2$p.value < 0.05 & t2$FDR < 0.05),]
+up2 = t2[which(t2$FC.tumor.over.control>10 & t2$p.value < 0.01 & t2$FDR < 0.05),]
 nrow(up2)
 write.table(up2,"upregulated_genes.txt2",sep="\t")
 
