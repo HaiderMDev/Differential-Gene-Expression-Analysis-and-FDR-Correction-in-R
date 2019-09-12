@@ -1,0 +1,35 @@
+
+setwd("/home/haider/Desktop/TCGA/Working set/cancers/thca 15/analysis/")
+
+#Read the file, compute fold-changes and the emoving of infinites as a result of fold-change calculation 
+t2= read.table("total.txt",header=T,sep="\t",row.names=1)
+t2$control.mean=rowMeans(t2[,1:57],na.rm=T)
+t2$tumor.mean=rowMeans(t2[,58:114],na.rm=T)
+t2$FC.tumor.over.control=t2$tumor.mean/t2$control.mean
+t2$FC.tumor.over.control.log10=log(t2$tumor.mean/t2$control.mean)
+t2[is.na(t2)] <- 0 #convert all NA to zero
+t2=t2[order(-t2$FC.tumor.over.control),] #sort by descending!
+
+#Calculation of p-value using the t-test
+t2$p.value=apply(t2,1,function(x) {t.test(x[1:57],x[58:114])$p.value})
+
+#Perform FDR correction:
+t2$FDR=p.adjust(t2$p.value,method="fdr",n=length(t2$p.value))
+
+#The volcano plot:
+t2$color = "black" 
+t2$color[t2$FC.tumor.over.control > 2 & t2$p.value<0.01 & t2$FDR < 0.05] = "red"
+t2$color[t2$FC.tumor.over.control < 0.1 & t2$p.value<0.01 & t2$FDR < 0.05] = "green"
+jpeg("volcano_plot.jpeg")
+plot(log10(t2$p.value),t2$FC.tumor.over.control.log10,xlab="Log10 Fold Change (Tumor/Control)", ylab="Log10 P-value", pch= 19,cex=0.2,col=t2$color, main="VOLCANO PLOT")
+dev.off()
+
+#Saving the upregulated genes as a separate file:
+up2 = t2[which(t2$FC.tumor.over.control>10 & t2$p.value < 0.05 & t2$FDR < 0.05),]
+nrow(up2)
+write.table(up2,"upregulated_genes.txt2",sep="\t")
+
+#Saving downregulated genes as a separate file:
+down2=t2[which(t2$FC.tumor.over.control<0.1 & t2$p.value < 0.01 & t2$FDR < 0.05),]
+nrow(down2)
+write.table(down2,"downregulated_genes2.txt",sep="\t")
